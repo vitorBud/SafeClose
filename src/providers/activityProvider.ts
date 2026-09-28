@@ -17,5 +17,7 @@ export const EMPTY_SNAPSHOT: ActivitySnapshot = {
     activeTimers: 0,
     pollingIntervalMs: null,
   },
+  provider: "real",
+  keepAwakeRequested: false,
+  keepAwakeActive: false,
 };
-

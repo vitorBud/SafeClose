@@ -1,19 +1,20 @@
 import { createContext, useContext, useSyncExternalStore, type PropsWithChildren } from "react";
 import type { ActivityProvider } from "./activityProvider";
 import { MockActivityProvider } from "./mockActivityProvider";
-import { SystemActivityProvider } from "./systemActivityProvider";
+import { RealActivityProvider } from "./realActivityProvider";
+import { ProviderRouter } from "./providerRouter";
 
 interface ProviderBundle {
   provider: ActivityProvider;
-  simulator?: MockActivityProvider;
+  simulator?: ProviderRouter;
 }
 
-const bundle: ProviderBundle = import.meta.env.DEV
-  ? (() => {
-      const simulator = new MockActivityProvider();
-      return { provider: simulator, simulator };
-    })()
-  : { provider: new SystemActivityProvider() };
+const bundle: ProviderBundle = (() => {
+  const real = new RealActivityProvider();
+  const mock = import.meta.env.DEV ? new MockActivityProvider() : undefined;
+  const router = new ProviderRouter(real, mock);
+  return { provider: router, simulator: import.meta.env.DEV ? router : undefined };
+})();
 
 const ActivityContext = createContext<ProviderBundle>(bundle);
 
@@ -33,4 +34,3 @@ export function useActivityProviderName() {
 export function useDevSimulator() {
   return useContext(ActivityContext).simulator;
 }
-

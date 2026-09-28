@@ -28,14 +28,18 @@ export function DevSimulator() {
 
       <div className="scenario-grid">
         {scenarios.map((scenario) => (
-          <button key={scenario.id} onClick={() => simulator.setScenario(scenario.id)}>
+          <button key={scenario.id} onClick={() => simulator.simulate(scenario.id)}>
             <span>{scenario.icon}</span>{scenario.label}
           </button>
         ))}
       </div>
 
-      <button className="complete-button" onClick={() => simulator.completeCurrent()} disabled={snapshot.activities.length === 0}>
+      <button className="complete-button" onClick={() => simulator.completeSimulation()} disabled={snapshot.provider !== "mock" || snapshot.activities.length === 0}>
         Marcar atividades como concluídas
+      </button>
+
+      <button className="real-data-button" onClick={() => simulator.useRealData()}>
+        Voltar para dados reais
       </button>
 
       <div className="metrics-card">
@@ -47,4 +51,3 @@ export function DevSimulator() {
     </section>
   );
 }
-

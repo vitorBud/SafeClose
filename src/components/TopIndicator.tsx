@@ -7,14 +7,17 @@ const stateLabels: Record<SafeCloseState, string> = {
   error: "Atenção necessária",
 };
 
-export function TopIndicator({ state, onClick }: { state: SafeCloseState; onClick: () => void }) {
+export function TopIndicator({ state, expanded, onClick }: { state: SafeCloseState; expanded: boolean; onClick: () => void }) {
   return (
-    <button className="top-indicator" data-state={state} onClick={onClick} aria-label={`${stateLabels[state]}. Abrir SafeClose`}>
-      <span className="indicator-glow" />
-      <span className="indicator-line" />
+    <button className="top-indicator" data-state={state} data-expanded={expanded} onClick={onClick} aria-label={`${stateLabels[state]}. ${expanded ? "Fechar" : "Abrir"} SafeClose`}>
+      <span className="line-topbar" aria-hidden="true">
+        <span className="line-segment line-segment--left" />
+        <span className="line-node" />
+        <span className="line-segment line-segment--right" />
+      </span>
+      <span className="line-hover-label" aria-hidden="true">SAFECLOSE</span>
     </button>
   );
 }
 
 export { stateLabels };
-

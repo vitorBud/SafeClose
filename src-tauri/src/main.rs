@@ -3,4 +3,3 @@
 fn main() {
     safeclose_lib::run();
 }
-

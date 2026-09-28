@@ -126,6 +126,9 @@ export class MockActivityProvider implements ActivityProvider {
         activeTimers: Number(this.progressTimer !== undefined) + Number(this.completionTimer !== undefined),
         pollingIntervalMs: this.progressTimer === undefined ? null : 800,
       },
+      provider: "mock",
+      keepAwakeRequested: this.keepAwake,
+      keepAwakeActive: this.keepAwake,
     };
   }
 

@@ -1,59 +1,90 @@
 # SafeClose
 
-SafeClose is a lightweight desktop indicator that answers one question: is something important still happening before you leave, sleep, or shut down the computer?
+SafeClose is a lightweight, local-first desktop utility that answers one question: **is something important still running before I leave, sleep, or shut down the computer?**
 
-This repository currently contains **Milestone 1 — Visual Prototype**. Activity data is simulated in development. Real process detection, keep-awake behavior, notifications, and browser connections are intentionally not implemented yet.
+Version 0.2 runs as a macOS accessory application: `LSUIElement` prevents a Dock flash during launch, and Tauri's native activation policy keeps the topbar available while the app stays out of the Dock. A normal Settings window temporarily restores the Dock icon and closing Settings does not stop monitoring.
 
-## Requirements
+## Run on macOS
 
-- macOS 13+ (development target: Apple Silicon)
+Requirements:
+
+- Apple Silicon or Intel macOS 13+
 - Node.js 20.19+ or 22.12+
-- Rust stable, installed with [rustup](https://rustup.rs/)
+- Rust stable through `rustup`
 - Xcode Command Line Tools
-
-## Run the desktop app
 
 ```bash
 npm install
 npm run tauri dev
 ```
 
-React and CSS changes are updated by Vite HMR while the Tauri window stays open.
+The first Rust build is slower. React and CSS changes use Vite HMR after the app is open.
 
-## Try the Dev Simulator
+## Production build
 
-1. Hover the thin status line to see the quick panel.
-2. Click the line or quick panel to open the main panel.
-3. Select **Simulador** in the sidebar.
-4. Choose Safe, download, upload, terminal, multiple activities, error, or keep-awake.
-
-Download and upload advance from 0 to 100 automatically. The simulator and its controls are excluded from production builds through `import.meta.env.DEV`.
-
-## Structure
-
-```text
-src/
-  components/     React views with no native detection logic
-  platform/       Small frontend bridge to platform-specific native behavior
-  providers/      ActivityProvider contract plus mock/system implementations
-  types/          Shared activity and state types
-src-tauri/
-  capabilities/   Explicit Tauri permissions
-  src/platform/   Rust adapters for macOS, Windows, and other desktop systems
+```bash
+npm run tauri build
 ```
 
-The frontend consumes only `ActivityProvider`. In development, it receives `MockActivityProvider`; production currently receives an inert `SystemActivityProvider` so SafeClose never invents real activity. Milestone 2 can implement native detection behind that same contract.
+Unsigned macOS artifacts are generated under `src-tauri/target/release/bundle/`. Distribution to other Macs still requires Apple signing/notarization.
 
-## Privacy and permissions
+## What is real
 
-Milestone 1 has no analytics, accounts, network backend, database, file access, process inspection, or persistent monitoring. Its only additional Tauri permissions let the app resize and center its own window as the bar expands. No sensitive macOS permission is requested.
+- Running processes, PID and parent PID.
+- CPU, memory, per-process disk I/O and elapsed time through `sysinfo`.
+- Conservative classifiers for bounded builds, renders, Git operations, Docker operations and command-line file transfers.
+- Manual **Monitor until done** for any visible PID.
+- Event-driven observation of temporary Chrome/Safari/Firefox files in the Downloads folder.
+- Native macOS power assertion through `/usr/bin/caffeinate -i -w <SafeClose PID>`.
+- Automatic assertion cleanup when tasks end, Keep Awake is disabled, or SafeClose exits/crashes.
+- Native notifications for watched-process completion and Keep Awake completion.
+- Native login startup using the official Tauri autostart plugin; default is off.
+- On-demand inspection of relevant macOS power assertions with `pmset`.
+- Local JSON preferences in the standard application config directory.
 
-The prototype enables Tauri's `macOSPrivateApi` setting solely to support a truly transparent frameless window. It does not request a macOS privacy permission, but apps using this private window API are not eligible for the Mac App Store. Before a store release, the window treatment must be revisited using only public macOS effects.
+SafeClose never assumes that an open browser, Spotify, Discord, a Node server, or generic network traffic is important. Network activity per process is not displayed because this version does not have a sufficiently reliable source. Download percentages are not shown without a connector that provides the total byte count.
+
+## Interface
+
+- The collapsed black/red topbar is pinned to the top center of the primary display.
+- Hover expands downward into a compact activity panel.
+- The gear opens a normal Settings window with General, Apps, Connections, Appearance, Detection, Energy and About.
+- Settings includes the only explicit **Quit SafeClose** action.
+- The Dev Simulator remains available only in development through the `DEV` button in the compact panel. Real data is the default even in development.
+
+## Architecture
+
+```text
+React UI
+  ├─ RealActivityProvider / MockActivityProvider
+  └─ Tauri commands + events
+       └─ ActivityEngine (Rust)
+            ├─ conservative process classifier
+            ├─ process watch registry
+            ├─ Downloads filesystem watcher
+            ├─ preference store
+            └─ platform adapter
+                 ├─ macOS: accessory mode, caffeinate, pmset
+                 └─ Windows/generic: explicit adapter boundary
+```
+
+The engine scans processes every 5 seconds while idle and every 1.5 seconds while Settings is open or an important activity exists. Filesystem events wake it immediately. Snapshots are emitted only when meaningful state changes; there is no React render loop or 100 ms polling.
+
+## Privacy and macOS behavior
+
+- No backend, account, analytics, telemetry or cloud storage.
+- Process and file information never leaves the computer.
+- The Downloads watcher observes only the immediate Downloads directory and only retains temporary-download paths briefly in memory.
+- Notifications are opt-in in Settings.
+- Startup is off by default.
+
+The frameless transparent topbar uses Tauri's `macOSPrivateApi`. This does not request a macOS privacy permission, but it prevents Mac App Store distribution. A future App Store build must use a public window treatment instead.
 
 ## Checks
 
 ```bash
 npm run typecheck
 npm run build
+cargo test --manifest-path src-tauri/Cargo.toml
 cargo check --manifest-path src-tauri/Cargo.toml
 ```
