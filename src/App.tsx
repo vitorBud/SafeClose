@@ -41,7 +41,7 @@ export default function App() {
     closeTimerRef.current = window.setTimeout(() => {
       modeRef.current = "collapsed";
       setMode("collapsed");
-    }, preferences.animations ? 340 : 0);
+    }, preferences.animations ? 440 : 0);
   }, [preferences.animations]);
 
   useEffect(() => {
@@ -73,7 +73,7 @@ export default function App() {
 
       if (modeRef.current === "peek") {
         outsideSince ??= Date.now();
-        if (Date.now() - outsideSince >= 220) closeSmoothly("peek");
+        if (Date.now() - outsideSince >= 140) closeSmoothly("peek");
       }
     }, 80);
     return () => window.clearInterval(interval);
@@ -85,7 +85,7 @@ export default function App() {
   };
 
   const visibleMode = mode.startsWith("closing-") ? mode.slice(8) : mode;
-  const lineWidth = visibleMode === "collapsed"
+  const lineWidth = mode.startsWith("closing-") || visibleMode === "collapsed"
     ? Math.max(80, preferences.topbarWidth - 20)
     : visibleMode === "peek"
       ? 302

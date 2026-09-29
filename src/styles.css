@@ -34,7 +34,15 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 
 /* Linear topbar + connected panel */
 .app-shell { width: 100%; height: 100%; position: relative; padding: 0; }
-.connected-surface { position: relative; width: 100%; transform-origin: top center; }
+.connected-surface {
+  position: relative;
+  width: 100%;
+  clip-path: inset(0 0 calc(100% - 18px) 0 round 0 0 22px 22px);
+  transform-origin: top center;
+  backface-visibility: hidden;
+  will-change: clip-path;
+  transition: clip-path 440ms var(--motion-smooth);
+}
 [data-mode="peek"] .connected-surface,
 [data-mode="open"] .connected-surface,
 [data-mode="simulator"] .connected-surface,
@@ -47,15 +55,13 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
   border-radius: 0 0 22px 22px;
   background: rgba(8, 9, 10, var(--surface-opacity));
   box-shadow: var(--shadow);
-}
-[data-mode="peek"] .connected-surface {
-  animation: surface-drop 380ms var(--motion-smooth) both;
+  clip-path: inset(0 round 0 0 22px 22px);
 }
 [data-mode="closing-peek"] .connected-surface,
 [data-mode="closing-open"] .connected-surface,
 [data-mode="closing-simulator"] .connected-surface {
   pointer-events: none;
-  animation: surface-lift 340ms var(--motion-standard) both;
+  clip-path: inset(0 0 calc(100% - 18px) 0 round 0 0 22px 22px);
 }
 .top-indicator { display: block; position: relative; z-index: 2; width: 100%; height: 22px; margin: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
 .line-topbar {
@@ -94,10 +100,10 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 [data-mode^="closing-"] .line-hover-label { opacity: 0; pointer-events: none; }
 [data-animations="off"] *, [data-animations="off"] *::before, [data-animations="off"] *::after { animation: none !important; transition: none !important; }
 @keyframes error-flash { 50% { opacity: .32; } }
-@keyframes surface-drop { from { opacity: 0; clip-path: inset(0 0 calc(100% - 18px) 0 round 0 0 22px 22px); transform: translateY(-3px); } to { opacity: 1; clip-path: inset(0 round 0 0 22px 22px); transform: none; } }
-@keyframes surface-lift { from { opacity: 1; clip-path: inset(0 round 0 0 22px 22px); transform: none; } to { opacity: 0; clip-path: inset(0 0 calc(100% - 18px) 0 round 0 0 22px 22px); transform: translateY(-3px); } }
-
 .hover-preview { width: 100%; padding: 4px 14px 9px; cursor: pointer; animation: panel-reveal 420ms 55ms var(--motion-smooth) both; }
+[data-mode="closing-peek"] .hover-preview,
+[data-mode="closing-open"] .compact-panel,
+[data-mode="closing-simulator"] .simulator-shell { animation: panel-conceal 300ms var(--motion-standard) both; }
 .hover-preview > header { height: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
 .hover-preview > header strong { color: var(--text-secondary); font-size: 7px; letter-spacing: .16em; }
 .hover-preview > header span { color: var(--primary-strong); font-size: 7px; font-weight: 800; text-transform: uppercase; }
@@ -124,6 +130,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 
 .compact-panel, .simulator-shell { position: relative; width: 100%; overflow: hidden; background: transparent; transform-origin: top center; animation: panel-reveal 440ms var(--motion-smooth) both; }
 @keyframes panel-reveal { from { opacity: 0; transform: translateY(-9px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes panel-conceal { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-7px) scale(.992); } }
 @keyframes item-reveal { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
 .compact-panel { padding: 9px 17px 13px; cursor: default; }
 .compact-panel > header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
