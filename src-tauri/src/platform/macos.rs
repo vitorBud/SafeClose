@@ -42,11 +42,11 @@ pub fn configure_main_window(app: &AppHandle) -> Result<(), String> {
     panel.set_collection_behavior(
         NSWindowCollectionBehavior::CanJoinAllSpaces
             | NSWindowCollectionBehavior::CanJoinAllApplications
-            | NSWindowCollectionBehavior::FullScreenAuxiliary
-            | NSWindowCollectionBehavior::Stationary,
+            | NSWindowCollectionBehavior::FullScreenAuxiliary,
     );
     panel.set_hides_on_deactivate(false);
     panel.set_accepts_mouse_moved_events(true);
+    panel.show();
     panel.order_front_regardless();
     Ok(())
 }
